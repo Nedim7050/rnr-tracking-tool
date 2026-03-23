@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AIESEC Carthage - Performance Tracking & Voting Tool
 
-## Getting Started
+A production-ready web application for tracking member performance and voting eligibility in AIESEC Carthage. Built on Next.js 15, TailwindCSS, shadcn/ui and a serverless Google Apps Script backend.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **No Database Needed**: Runs entirely off Google Sheets for maximum portability and ease of editing by VPs.
+- **Automated Voting Eligibility**: Real-time LCM and action point threshold calculations.
+- **Smart Metric Engine**: Supports Fixed, Per-Unit, Percentage and Manual validation models.
+- **Sanctions & VP Notes**: Built-in modifier panels for full leadership control.
+- **Printable Reports**: Member performance pages have a built-in clean print CSS format for paper evidence.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup Instructions
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 1. Google Sheets & Apps Script Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+First, initialize your database. All data is structured across specific Tabs in a Google Sheet.
 
-## Learn More
+1. Read the [Sheets Setup Guide](./docs/sheets-setup.md) to understand the Schema structure.
+2. Read the [Apps Script Deployment Guide](./docs/apps-script-deploy.md) to create the REST API from your Sheets.
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Next.js Frontend Setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clone or copy this repository to your local machine.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env.local` file at the root:
+   ```env
+   # Your copied URL from Google Apps Script deployment (ends with /exec)
+   GOOGLE_APPS_SCRIPT_URL="https://script.google.com/macros/s/.../exec"
+   
+   # A secure passcode for admin login (Default for testing)
+   ADMIN_PASSCODE="AIESEC123"
+   ```
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+5. Navigate to `http://localhost:3000` to start seeing the dashboard.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 3. Quick Seed
 
-## Deploy on Vercel
+To quickly test the application without manually creating 60+ rows in Google Sheets:
+1. Ensure your backend is wired up.
+2. Login to the application via `/login`.
+3. Go to **Admin Settings** -> **Advanced**.
+4. Click **Run Seed Command**. 
+> Note: this will delete current Members and populate the official Carthage seeded roster.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy this frontend easily on **Vercel**:
+1. Push repository to GitHub.
+2. Import project into Vercel.
+3. Add the `GOOGLE_APPS_SCRIPT_URL` and `ADMIN_PASSCODE` variables to your Vercel Environment variables.
+4. Deploy! Next.js App Router caching will automatically optimize speed.
