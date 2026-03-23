@@ -11,7 +11,8 @@ export async function getDashboardData(): Promise<DashboardData> {
         console.warn("GOOGLE_APPS_SCRIPT_URL is not defined in environment.");
         return {
             members: [], metrics: [], submissions: [], events: [],
-            attendance: [], vp_notes: [], sanctions: [], voting_periods: []
+            attendance: [], vp_notes: [], sanctions: [], voting_periods: [],
+            audit_log: []
         };
     }
 

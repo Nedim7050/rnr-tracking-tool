@@ -113,7 +113,7 @@ export function AttendanceTracker({ members, events, attendance, activePeriod }:
     return (
         <Card className="border-blue-100 bg-white/50 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50 shadow-sm transition-all h-full min-h-[500px]">
             <CardHeader className="border-b border-blue-100 dark:border-slate-800 pb-0 px-0 pt-6">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <Tabs value={activeTab} onValueChange={(v) => v && setActiveTab(v as any)} className="w-full">
                     <div className="px-6 flex justify-between items-center mb-6">
                         <CardTitle className="text-xl">Event & Attendance</CardTitle>
                         <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 p-1 border border-slate-200 dark:border-slate-700">
@@ -132,7 +132,7 @@ export function AttendanceTracker({ members, events, attendance, activePeriod }:
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Event Type</label>
-                                <Select value={eventType} onValueChange={setEventType} required>
+                                <Select value={eventType} onValueChange={(v) => v && setEventType(v as any)} required>
                                     <SelectTrigger className="w-full">
                                         <SelectValue placeholder="Select type" />
                                     </SelectTrigger>
@@ -164,7 +164,7 @@ export function AttendanceTracker({ members, events, attendance, activePeriod }:
                         <div className="flex flex-col sm:flex-row gap-4 mb-6 pt-2 items-end">
                             <div className="flex-1 space-y-2 w-full">
                                 <label className="text-sm font-semibold text-slate-500 dark:text-slate-400">Select Event to mark</label>
-                                <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+                                <Select value={selectedEventId} onValueChange={(v) => v && setSelectedEventId(v)}>
                                     <SelectTrigger className="border-blue-200 focus:ring-blue-500 bg-blue-50/30 dark:bg-blue-950/20 dark:border-blue-900 border-2 transition-colors w-full break-all whitespace-normal h-auto min-h-[2.5rem] py-2">
                                         <SelectValue placeholder="Choose an event..." />
                                     </SelectTrigger>

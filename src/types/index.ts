@@ -120,4 +120,5 @@ export interface DashboardData {
   vp_notes: VPNote[];
   sanctions: Sanction[];
   voting_periods: VotingPeriod[];
+  audit_log: AuditLog[];
 }

@@ -221,7 +221,7 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                         <form onSubmit={handleVPNote} className="space-y-4 max-w-lg">
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold">Member</label>
-                                <Select value={memberId} onValueChange={setMemberId} required>
+                                <Select value={memberId} onValueChange={(v) => v && setMemberId(v)} required>
                                     <SelectTrigger><SelectValue placeholder="Select member" /></SelectTrigger>
                                     <SelectContent>
                                         {members.map(m => <SelectItem key={m.member_id} value={m.member_id}>{m.full_name}</SelectItem>)}
@@ -244,7 +244,7 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                         <form onSubmit={handleSanction} className="space-y-4 max-w-lg">
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold">Member</label>
-                                <Select value={sMemberId} onValueChange={setSMemberId} required>
+                                <Select value={sMemberId} onValueChange={(v) => v && setSMemberId(v)} required>
                                     <SelectTrigger><SelectValue placeholder="Select member" /></SelectTrigger>
                                     <SelectContent>
                                         {members.map(m => <SelectItem key={m.member_id} value={m.member_id}>{m.full_name}</SelectItem>)}
@@ -253,7 +253,7 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold">Sanction Type</label>
-                                <Select value={sType} onValueChange={setSType} required>
+                                <Select value={sType} onValueChange={(v) => v && setSType(v as any)} required>
                                     <SelectTrigger><SelectValue placeholder="Select sanction" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="reprimand">Reprimand (-5 pts)</SelectItem>
@@ -277,7 +277,7 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                         <form onSubmit={handleOCPerformance} className="space-y-4 max-w-lg">
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold">Member</label>
-                                <Select value={ocMemberId} onValueChange={setOCMemberId} required>
+                                <Select value={ocMemberId} onValueChange={(v) => v && setOCMemberId(v)} required>
                                     <SelectTrigger><SelectValue placeholder="Select member" /></SelectTrigger>
                                     <SelectContent>
                                         {members.map(m => <SelectItem key={m.member_id} value={m.member_id}>{m.full_name}</SelectItem>)}
@@ -299,7 +299,7 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                         <form onSubmit={handleBDFulfillment} className="space-y-4 max-w-lg">
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold">BD&amp;EwA Member</label>
-                                <Select value={bdMemberId} onValueChange={setBdMemberId} required>
+                                <Select value={bdMemberId} onValueChange={(v) => v && setBdMemberId(v)} required>
                                     <SelectTrigger><SelectValue placeholder="Select BD member" /></SelectTrigger>
                                     <SelectContent>
                                         {members.filter(m => (m.department_code || '').toUpperCase().includes('BD')).map(m => <SelectItem key={m.member_id} value={m.member_id}>{m.full_name}</SelectItem>)}

@@ -47,7 +47,7 @@ export function MemberList({ scores }: { scores: MemberScore[] }) {
                         />
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
-                        <Select value={deptFilter} onValueChange={setDeptFilter}>
+                        <Select value={deptFilter} onValueChange={(v) => v && setDeptFilter(v)}>
                             <SelectTrigger className="w-[140px] bg-white dark:bg-slate-950 h-10">
                                 <SelectValue placeholder="Department" />
                             </SelectTrigger>
@@ -59,7 +59,7 @@ export function MemberList({ scores }: { scores: MemberScore[] }) {
                             </SelectContent>
                         </Select>
 
-                        <Select value={posFilter} onValueChange={setPosFilter}>
+                        <Select value={posFilter} onValueChange={(v) => v && setPosFilter(v)}>
                             <SelectTrigger className="w-[140px] bg-white dark:bg-slate-950 h-10">
                                 <SelectValue placeholder="Position" />
                             </SelectTrigger>
