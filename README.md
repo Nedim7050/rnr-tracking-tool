@@ -28,11 +28,6 @@ First, initialize your database. All data is structured across specific Tabs in 
    ```
 3. Create a `.env.local` file at the root:
    ```env
-   # Your copied URL from Google Apps Script deployment (ends with /exec)
-   GOOGLE_APPS_SCRIPT_URL="https://script.google.com/macros/s/.../exec"
-   
-   # A secure passcode for admin login (Default for testing)
-   ADMIN_PASSCODE="AIESEC123"
    ```
 4. Start the development server:
    ```bash
