@@ -22,8 +22,8 @@ export default async function SubmitActionPage() {
         <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950 py-12 px-4 sm:px-6">
             <div className="w-full max-w-lg mx-auto">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">RnR Submission Tracker</h1>
-                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Submit your proofs to claim performance points.</p>
+                    <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">AIESEC <span className="text-blue-600 dark:text-blue-400">CARTHAGE</span> RNR</h1>
+                    <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400">Claim your performance points by submitting proof.</p>
                 </div>
 
                 <SubmissionForm members={activeMembers} metrics={activeMetrics} scriptUrl={SCRIPT_URL} />

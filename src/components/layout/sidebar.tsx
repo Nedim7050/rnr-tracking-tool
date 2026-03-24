@@ -21,8 +21,7 @@ const navItems = [
     { name: 'Submissions', href: '/submissions', icon: History },
     { name: 'Voting Board', href: '/voting', icon: Trophy },
     { name: 'Events & Attendance', href: '/attendance', icon: CalendarCheck },
-    { name: 'Sanctions', href: '/sanctions', icon: ShieldAlert },
-    { name: 'Settings', href: '/admin', icon: Settings },
+    { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
 export function Sidebar() {
@@ -33,7 +32,7 @@ export function Sidebar() {
             <div className="flex h-16 items-center border-b px-6 border-slate-200 dark:border-slate-800">
                 <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-700 dark:text-blue-400">
                     <Vote className="h-6 w-6" />
-                    <span className="tracking-tight">AIESEC RNR</span>
+                    <span className="tracking-tight uppercase">AIESEC <span className="text-blue-600 dark:text-blue-400">CARTHAGE</span> RNR</span>
                 </Link>
             </div>
             <div className="flex-1 overflow-y-auto py-6">

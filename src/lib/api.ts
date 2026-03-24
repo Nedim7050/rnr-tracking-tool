@@ -22,7 +22,8 @@ export async function getDashboardData(): Promise<DashboardData> {
         });
 
         if (!res.ok) {
-            throw new Error("Failed to fetch dashboard data");
+            console.error(`Fetch failed with status: ${res.status}`);
+            throw new Error(`Failed to fetch dashboard data (Status: ${res.status})`);
         }
         const data = await res.json();
         return data;

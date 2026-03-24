@@ -1,4 +1,4 @@
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID_HERE";
+const SPREADSHEET_ID = "1ZUs247i9p3DkkQdyOt7jSHzksPNjW63l9roOLuGuuL4";
 
 // IMPORTANT: Do NOT rename the functions doGet and doPost.
 
@@ -117,6 +117,7 @@ function jsonResponse(data, code = 200) {
 }
 
 function sheetToObjects(sheet) {
+  if (!sheet) return [];
   const data = sheet.getDataRange().getDisplayValues();
   if (data.length <= 1) return [];
   const headers = data[0];
