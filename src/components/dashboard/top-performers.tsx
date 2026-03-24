@@ -15,7 +15,6 @@ export function TopPerformers({ scores }: { scores: MemberScore[] }) {
 
     const topByDept = Array.from(deptMap.values())
         .sort((a, b) => b.trackingScore - a.trackingScore)
-        .slice(0, 5)
 
     const posMap = new Map<string, MemberScore>()
     scores.forEach(s => {
