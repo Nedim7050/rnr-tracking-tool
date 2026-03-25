@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { DashboardData } from '@/types'
-import { addVPNote, addSanction, createVotingPeriod, seedGoogleSheets, seedGoogleSheetsMetrics, forceRecalculation, addOCPerformance, addBDTargetFulfillment } from '@/app/actions/admin'
+import { addVPNote, addSanction, seedGoogleSheets, seedGoogleSheetsMetrics, forceRecalculation, addOCPerformance, addBDTargetFulfillment, updateMetricPoints } from '@/app/actions/admin'
 import { SEEDED_MEMBERS } from '@/lib/seed'
 import { SEEDED_METRICS } from '@/lib/metrics-seed'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
@@ -31,10 +31,8 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
     const [bdMemberId, setBdMemberId] = useState('')
     const [bdPercent, setBdPercent] = useState('')
 
-    const [pLabel, setPLabel] = useState('')
-    const [pStart, setPStart] = useState('')
-    const [pEnd, setPEnd] = useState('')
-    const [pMin, setPMin] = useState('20')
+    const [metricToUpdate, setMetricToUpdate] = useState('')
+    const [newMetricPoints, setNewMetricPoints] = useState('')
 
     const notify = (msg: string, type: 'success' | 'error') => {
         setMessage({ text: msg, type })
@@ -138,19 +136,15 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
         else notify(res.error || 'Error', 'error')
     }
 
-    const handlePeriod = async (e: React.FormEvent) => {
+    const handleMetricUpdate = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        const res = await createVotingPeriod({
-            period_key: pLabel.replace(/\s+/g, '_').toLowerCase(),
-            label: pLabel,
-            start_date: pStart,
-            end_date: pEnd,
-            min_voting_score: Number(pMin),
-            active: true
-        })
+        const metric = data.metrics?.find(m => m.metric_id === metricToUpdate)
+        if (!metric) return;
+        
+        const res = await updateMetricPoints(metricToUpdate, metric.base_points, Number(newMetricPoints))
         setLoading(false)
-        if (res.success) notify('Voting Period created & set to active.', 'success')
+        if (res.success) notify('Metric updated and historical scores correctly frozen.', 'success')
         else notify(res.error || 'Error', 'error')
     }
 
@@ -204,7 +198,7 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                             <TabsTrigger value="sanctions" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">Sanctions</TabsTrigger>
                             <TabsTrigger value="oc_performance" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">OC Score</TabsTrigger>
                             <TabsTrigger value="bd_fulfillment" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">BD% Target</TabsTrigger>
-                            <TabsTrigger value="periods" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">Periods</TabsTrigger>
+                            <TabsTrigger value="metric_points" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">Metric Points</TabsTrigger>
                             <TabsTrigger value="advanced" className="data-[state=active]:bg-red-50 text-red-600 dark:data-[state=active]:bg-red-950/30">Advanced</TabsTrigger>
                         </TabsList>
                     </div>
@@ -298,7 +292,7 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                         </div>
                         <form onSubmit={handleBDFulfillment} className="space-y-4 max-w-lg">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold">BD&amp;EwA Member</label>
+                                <label className="text-sm font-semibold">BD Member</label>
                                 <Select value={bdMemberId} onValueChange={(v) => v && setBdMemberId(v)} required>
                                     <SelectTrigger><SelectValue placeholder="Select BD member" /></SelectTrigger>
                                     <SelectContent>
@@ -315,27 +309,27 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                         </form>
                     </TabsContent>
 
-                    <TabsContent value="periods" className="px-6 pb-6 pt-2 m-0 border-none outline-none">
-                        <form onSubmit={handlePeriod} className="space-y-4 max-w-lg">
+                    <TabsContent value="metric_points" className="px-6 pb-6 pt-2 m-0 border-none outline-none">
+                        <form onSubmit={handleMetricUpdate} className="space-y-4 max-w-lg">
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold">Period Label</label>
-                                <Input placeholder="e.g. November 2026" value={pLabel} onChange={e => setPLabel(e.target.value)} required />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold">Start Date</label>
-                                    <Input type="date" value={pStart} onChange={e => setPStart(e.target.value)} required />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold">End Date</label>
-                                    <Input type="date" value={pEnd} onChange={e => setPEnd(e.target.value)} required />
-                                </div>
+                                <label className="text-sm font-semibold">Select Action / Metric</label>
+                                <Select value={metricToUpdate} onValueChange={(v) => v && setMetricToUpdate(v)} required>
+                                    <SelectTrigger><SelectValue placeholder="Select metric" /></SelectTrigger>
+                                    <SelectContent>
+                                        {data.metrics?.filter(m => m.formula_type === 'FIXED' || m.formula_type === 'PER_UNIT').map(m => (
+                                            <SelectItem key={m.metric_id} value={m.metric_id}>{m.metric_name} ({m.base_points} pts)</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold">Min. Score to Vote</label>
-                                <Input type="number" min="0" value={pMin} onChange={e => setPMin(e.target.value)} required />
+                                <label className="text-sm font-semibold">New Base Points</label>
+                                <Input type="number" min="0" value={newMetricPoints} onChange={e => setNewMetricPoints(e.target.value)} required />
                             </div>
-                            <Button type="submit" disabled={loading} className="mt-2 bg-blue-600 hover:bg-blue-700 w-full">Create & Set Active</Button>
+                            <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-400 mt-2">
+                                <strong>Important:</strong> Changing this will automatically freeze the exact scores for all PAST submissions of this metric, meaning no one loses points. Only FUTURE submissions will use the new base points value.
+                            </div>
+                            <Button type="submit" disabled={loading} className="mt-2 bg-blue-600 hover:bg-blue-700 w-full">Update Metric & Freeze History</Button>
                         </form>
                     </TabsContent>
 

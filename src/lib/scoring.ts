@@ -31,16 +31,8 @@ export interface MemberScore {
 export function calculateScores(data: DashboardData, activePeriodKey: string | null = null): MemberScore[] {
     const { members, metrics, submissions, events, attendance, vp_notes, sanctions, voting_periods } = data;
 
-    // Find current voting period to determine thresholds and filter events/submissions if needed
-    // For now, we calculate all-time unless periodKey is strictly enforced on submission level.
-    // We'll filter submissions and events by periodKey if provided.
-    let activePeriod = voting_periods.find(p => p.active) || voting_periods[0];
-    if (activePeriodKey) {
-        activePeriod = voting_periods.find(p => p.period_key === activePeriodKey) || activePeriod;
-    }
-
-    const minVotingScore = activePeriod?.min_voting_score || Infinity; // default to impossible if no period
-    const scopedEvents = events; // filter by activePeriod.period_key if needed
+    const minVotingScore = 0; 
+    const scopedEvents = events; 
     const list: MemberScore[] = [];
 
     for (const member of members) {
@@ -52,6 +44,8 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
         const mAttendance = attendance.filter(a => a.member_id === member.member_id && a.present);
         const mSanctions = sanctions.filter(s => s.member_id === member.member_id);
         const mVPNotes = vp_notes.filter(n => n.member_id === member.member_id);
+        const mOCScores = (data.oc_scores || []).filter(s => s.member_id === member.member_id);
+        const mBDTargets = (data.bd_targets || []).filter(s => s.member_id === member.member_id);
 
         let votingRawScore = 0;
         let generalJDScore = 0;
@@ -119,7 +113,9 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
             if (!metric) return;
 
             let pts = 0;
-            if (metric.formula_type === 'FIXED') {
+            if (sub.manual_score !== null && sub.manual_score !== undefined) {
+                pts = Number(sub.manual_score);
+            } else if (metric.formula_type === 'FIXED') {
                 pts = metric.base_points;
             } else if (metric.formula_type === 'PER_UNIT') {
                 pts = metric.base_points * (sub.quantity || 1);

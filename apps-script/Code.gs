@@ -33,10 +33,10 @@ function doGet(e) {
         return jsonResponse({ data: sheetToObjects(getSheet("VPNotes")) });
       case "sanctions":
         return jsonResponse({ data: sheetToObjects(getSheet("Sanctions")) });
-      case "voting_periods":
-        return jsonResponse({ data: sheetToObjects(getSheet("VotingPeriods")) });
-      case "audit_log":
-        return jsonResponse({ data: sheetToObjects(getSheet("AuditLog")) });
+      case "voting_periods": return jsonResponse({ data: sheetToObjects(getSheet("VotingPeriods")) });
+      case "audit_log": return jsonResponse({ data: sheetToObjects(getSheet("AuditLog")) });
+      case "oc_scores": return jsonResponse({ data: sheetToObjects(getSheet("OCScores")) });
+      case "bd_targets": return jsonResponse({ data: sheetToObjects(getSheet("BDTargets")) });
       default:
         // By default return everything to local cache to avoid multiple requests
         return jsonResponse({ 
@@ -49,6 +49,8 @@ function doGet(e) {
           sanctions: sheetToObjects(getSheet("Sanctions")),
           voting_periods: sheetToObjects(getSheet("VotingPeriods")),
           audit_log: sheetToObjects(getSheet("AuditLog")),
+          oc_scores: sheetToObjects(getSheet("OCScores")),
+          bd_targets: sheetToObjects(getSheet("BDTargets"))
         });
     }
   } catch(err) {
@@ -68,25 +70,20 @@ function doPost(e) {
     const action = data.action;
     const payload = data.payload;
 
-    if (action === "submit_action") {
-      return jsonResponse(insertRow("Submissions", payload));
-    } else if (action === "review_submission") {
-      return jsonResponse(updateRow("Submissions", "submission_id", payload.submission_id, payload));
-    } else if (action === "create_event") {
-      return jsonResponse(insertRow("Events", payload));
-    } else if (action === "mark_attendance") {
-      return jsonResponse(insertRows("Attendance", payload)); // Array payload
-    } else if (action === "add_sanction") {
-      return jsonResponse(insertRow("Sanctions", payload));
-    } else if (action === "add_vp_note") {
-      return jsonResponse(insertRow("VPNotes", payload));
-    } else if (action === "log_audit") {
-      return jsonResponse(insertRow("AuditLog", payload));
-    } else if (action === "seed_members") {
-      return jsonResponse(seedData("Members", payload.headers, payload.rows));
-    } else if (action === "seed_metrics") {
-      return jsonResponse(seedData("MetricCatalog", payload.headers, payload.rows));
-    } else if (action === "update_member") {
+    if (action === "submit_action") return jsonResponse(insertRow("Submissions", payload));
+    if (action === "review_submission") return jsonResponse(updateRow("Submissions", "submission_id", payload.submission_id, payload));
+    if (action === "create_event") return jsonResponse(insertRow("Events", payload));
+    if (action === "mark_attendance") return jsonResponse(insertRows("Attendance", payload));
+    if (action === "add_sanction") return jsonResponse(insertRow("Sanctions", payload));
+    if (action === "add_vp_note") return jsonResponse(insertRow("VPNotes", payload));
+    if (action === "log_audit") return jsonResponse(insertRow("AuditLog", payload));
+    if (action === "add_oc_score") return jsonResponse(insertRow("OCScores", payload));
+    if (action === "add_bd_target") return jsonResponse(insertRow("BDTargets", payload));
+    if (action === "update_metric") return jsonResponse(updateRow("MetricCatalog", "metric_id", payload.metric_id, payload));
+    if (action === "update_metric_with_history") return jsonResponse(updateMetricWithHistory(payload));
+    if (action === "seed_members") return jsonResponse(seedData("Members", payload.headers, payload.rows));
+    if (action === "seed_metrics") return jsonResponse(seedData("MetricCatalog", payload.headers, payload.rows));
+    else if (action === "update_member") {
       return jsonResponse(updateRow("Members", "member_id", payload.member_id, payload));
     } else if (action === "create_voting_period") {
       return jsonResponse(insertRow("VotingPeriods", payload));
@@ -233,6 +230,47 @@ function seedData(sheetName, headers, rows) {
     sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
   }
   return { success: true, seededRows: rows.length };
+}
+
+function updateMetricWithHistory(payload) {
+  const { metric_id, old_base_points, new_base_points } = payload;
+  
+  // 1. Freeze history in Submissions sheet
+  const subSheet = getSheet("Submissions");
+  const data = subSheet.getDataRange().getValues();
+  if (data.length > 1) {
+    const headers = data[0];
+    const metricIdx = headers.indexOf("metric_id");
+    const manualScoreIdx = headers.indexOf("manual_score");
+    const qtyIdx = headers.indexOf("quantity");
+    
+    // Ensure manual_score column exists
+    let mIdx = manualScoreIdx;
+    if (mIdx === -1) {
+      headers.push("manual_score");
+      subSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      mIdx = headers.length - 1;
+    }
+    
+    const updates = []; // Array of [row, col, val]
+    for (let i = 1; i < data.length; i++) {
+        if (data[i][metricIdx] === metric_id) {
+            let currentManual = data[i][mIdx];
+            if (currentManual === "" || currentManual === null || currentManual === undefined) {
+               // Calculate what points they originally got
+               let qty = Number(data[i][qtyIdx]) || 1;
+               let frozenPoints = old_base_points * qty;
+               updates.push({ row: i + 1, col: mIdx + 1, val: frozenPoints });
+            }
+        }
+    }
+    
+    // Apply updates efficiently
+    updates.forEach(u => subSheet.getRange(u.row, u.col).setValue(u.val));
+  }
+  
+  // 2. Update MetricCatalog
+  return updateRow("MetricCatalog", "metric_id", metric_id, { base_points: new_base_points });
 }
 
 function uploadFileToDrive(payload) {

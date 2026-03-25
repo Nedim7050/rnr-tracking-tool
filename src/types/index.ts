@@ -111,6 +111,27 @@ export type AuditLog = {
   details: string;
 };
 
+export type OCScore = {
+  submission_id: string;
+  member_id: string;
+  metric_id: string;
+  metric_name: string;
+  manual_score: number;
+  submitted_at: string;
+  vp_notes: string;
+  period_key: string;
+};
+
+export type BDTarget = {
+  submission_id: string;
+  member_id: string;
+  metric_id: string;
+  metric_name: string;
+  percent_value: number;
+  submitted_at: string;
+  period_key: string;
+};
+
 export interface DashboardData {
   members: Member[];
   metrics: MetricCatalog[];
@@ -121,4 +142,6 @@ export interface DashboardData {
   sanctions: Sanction[];
   voting_periods: VotingPeriod[];
   audit_log: AuditLog[];
+  oc_scores?: OCScore[];
+  bd_targets?: BDTarget[];
 }

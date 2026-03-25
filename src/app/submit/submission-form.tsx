@@ -18,7 +18,7 @@ export function SubmissionForm({ members, metrics, scriptUrl }: { members: Membe
     const [memberCode, setMemberCode] = useState('')
     const [metricId, setMetricId] = useState('')
     const [proofUrl, setProofUrl] = useState('')
-    const [quantity, setQuantity] = useState('1')
+
 
     const [loadingMessage, setLoadingMessage] = useState('')
 
@@ -111,7 +111,7 @@ export function SubmissionForm({ members, metrics, scriptUrl }: { members: Membe
             member_code: memberCode,
             metric_id: metricId,
             proof_url: finalProofUrl,
-            quantity: Number(quantity) || 1
+            quantity: 1
         })
 
         if (res.success) {
@@ -135,7 +135,7 @@ export function SubmissionForm({ members, metrics, scriptUrl }: { members: Membe
                         Your proof has been recorded and is pending admin review.
                     </p>
                     <Button onClick={() => {
-                        setSuccess(false); setProofUrl(''); setFileData(null); setMetricId(''); setQuantity('1'); setMemberCode('');
+                        setSuccess(false); setProofUrl(''); setFileData(null); setMetricId(''); setMemberCode('');
                     }} className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900">
                         Submit Another Action
                     </Button>
@@ -197,26 +197,13 @@ export function SubmissionForm({ members, metrics, scriptUrl }: { members: Membe
                             <SelectContent className="min-w-[300px] w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
                                 {metrics.map(m => (
                                     <SelectItem key={m.metric_id} value={m.metric_id} className="cursor-pointer break-words whitespace-normal py-2 border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50">
-                                        {m.metric_name} {m.base_points > 0 ? <span className="text-blue-500 ml-1">(+{m.base_points} pts)</span> : ''}
+                                        {m.metric_name.replace(/\s*\(Voting\)\s*$/i, '')} {m.base_points > 0 ? <span className="text-blue-500 ml-1">(+{m.base_points} pts)</span> : ''}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
 
-                    {selectedMetric?.requires_quantity && (
-                        <div className="space-y-2 animate-in slide-in-from-top-2">
-                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Quantity</label>
-                            <Input
-                                type="number"
-                                min="1"
-                                value={quantity}
-                                onChange={e => setQuantity(e.target.value)}
-                                className="bg-white dark:bg-slate-950"
-                                required
-                            />
-                        </div>
-                    )}
 
                     <div className="space-y-4">
                         <div className="flex items-center gap-4">

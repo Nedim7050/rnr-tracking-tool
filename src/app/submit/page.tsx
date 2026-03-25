@@ -1,5 +1,6 @@
 import { getDashboardData, SCRIPT_URL } from '@/lib/api'
 import { SubmissionForm } from './submission-form'
+import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,11 +20,16 @@ export default async function SubmitActionPage() {
     ) || []
 
     return (
-        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950 py-12 px-4 sm:px-6">
-            <div className="w-full max-w-lg mx-auto">
+        <div className="relative flex min-h-screen items-center justify-center bg-slate-900/30 p-4 sm:p-6 py-12">
+            <div className="absolute inset-0 z-0 overflow-hidden">
+                <Image src="/login-bg.jpg" alt="AIESEC Carthage Background" fill className="object-cover opacity-85" priority />
+                <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-[3px]"></div>
+            </div>
+            
+            <div className="relative z-10 w-full max-w-lg mx-auto">
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">AIESEC <span className="text-blue-600 dark:text-blue-400">CARTHAGE</span> RNR</h1>
-                    <p className="mt-2 text-sm font-medium text-slate-600 dark:text-slate-400">Claim your performance points by submitting proof.</p>
+                    <h1 className="text-4xl font-black text-white tracking-tighter uppercase drop-shadow-md">AIESEC <span className="text-blue-400">CARTHAGE</span> RNR</h1>
+                    <p className="mt-2 text-sm font-medium text-slate-200 drop-shadow">Claim your performance points by submitting proof.</p>
                 </div>
 
                 <SubmissionForm members={activeMembers} metrics={activeMetrics} scriptUrl={SCRIPT_URL} />

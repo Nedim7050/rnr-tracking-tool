@@ -22,7 +22,7 @@ export async function addSanction(payload: any) {
 
 export async function addOCPerformance(payload: any) {
     try {
-        const res = await submitActionToSheet("submit_action", payload)
+        const res = await submitActionToSheet("add_oc_score", payload)
         return { success: true }
     } catch (err: any) {
         return { success: false, error: err.message }
@@ -31,11 +31,22 @@ export async function addOCPerformance(payload: any) {
 
 export async function addBDTargetFulfillment(payload: any) {
     try {
-        // payload: { member_id, metric_id, percent_value, period_key, entered_by }
-        const res = await submitActionToSheet("submit_action", {
+        const res = await submitActionToSheet("add_bd_target", {
             ...payload,
             metric_name: '% Target List Fulfillment',
-            status: 'approved', // Admin sets it directly, no review needed
+        })
+        return { success: true }
+    } catch (err: any) {
+        return { success: false, error: err.message }
+    }
+}
+
+export async function updateMetricPoints(metric_id: string, old_base_points: number, new_base_points: number) {
+    try {
+        const res = await submitActionToSheet("update_metric_with_history", {
+            metric_id,
+            old_base_points,
+            new_base_points
         })
         return { success: true }
     } catch (err: any) {
