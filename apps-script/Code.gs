@@ -3,10 +3,9 @@ const SPREADSHEET_ID = "1ZUs247i9p3DkkQdyOt7jSHzksPNjW63l9roOLuGuuL4";
 // IMPORTANT: Do NOT rename the functions doGet and doPost.
 
 function getSheet(sheetName) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(sheetName);
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(sheetName);
   if (!sheet) {
-    // Auto-create if not exists for easy setup
     sheet = ss.insertSheet(sheetName);
   }
   return sheet;
