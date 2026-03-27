@@ -31,7 +31,7 @@ export interface MemberScore {
 export function calculateScores(data: DashboardData, activePeriodKey: string | null = null): MemberScore[] {
     const { members, metrics, submissions, events, attendance, vp_notes, sanctions, voting_periods } = data;
 
-    const minVotingScore = 0; 
+    const minVotingScore = voting_periods.length > 0 ? Number(voting_periods[0].min_voting_score) || 0 : 0; 
     const scopedEvents = events; 
     const list: MemberScore[] = [];
 
@@ -152,6 +152,20 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
             }
         });
 
+        // 2.1 Process Dedicated OC Scores
+        mOCScores.forEach(oc => {
+            const pts = Number(oc.manual_score) || 0;
+            generalJDScore += pts;
+            breakdown.generalDetails.push({ name: `OC Score`, points: pts, type: 'GENERAL' });
+        });
+
+        // 2.2 Process Dedicated BD Targets
+        mBDTargets.forEach(bd => {
+            const percent = Number(bd.percent_value) || 0;
+            const pts = percent / 10;
+            departmentJDScore += pts;
+            breakdown.departmentDetails.push({ name: `Target Fulfillment`, points: pts, type: 'DEPARTMENT' });
+        });
 
         // 3. Process Sanctions
         // Check for disqualifying sanctions (blame or probation = ineligible for voting list)
