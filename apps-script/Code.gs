@@ -72,7 +72,7 @@ function doPost(e) {
     if (action === "submit_action") return jsonResponse(insertRow("Submissions", payload));
     if (action === "review_submission") return jsonResponse(updateRow("Submissions", "submission_id", payload.submission_id, payload));
     if (action === "create_event") return jsonResponse(insertRow("Events", payload));
-    if (action === "mark_attendance") return jsonResponse(insertRows("Attendance", payload));
+    if (action === "mark_attendance") return jsonResponse(overwriteAttendance(payload));
     if (action === "add_sanction") return jsonResponse(insertRow("Sanctions", payload));
     if (action === "add_vp_note") return jsonResponse(insertRow("VPNotes", payload));
     if (action === "log_audit") return jsonResponse(insertRow("AuditLog", payload));
@@ -86,6 +86,8 @@ function doPost(e) {
       return jsonResponse(updateRow("Members", "member_id", payload.member_id, payload));
     } else if (action === "create_voting_period") {
       return jsonResponse(insertRow("VotingPeriods", payload));
+    } else if (action === "update_global_settings") {
+      return jsonResponse(updateGlobalSettings(payload));
     } else if (action === "upload_proof") {
       return jsonResponse(uploadFileToDrive(payload));
     } else {
@@ -229,6 +231,35 @@ function seedData(sheetName, headers, rows) {
     sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
   }
   return { success: true, seededRows: rows.length };
+}
+
+function updateGlobalSettings(payload) {
+  const sheet = getSheet("VotingPeriods");
+  sheet.clear();
+  const headers = ["period_key", "label", "start_date", "end_date", "min_voting_score", "active"];
+  sheet.appendRow(headers);
+  sheet.appendRow(["global", "Global Scoring", "2020-01-01", "2099-12-31", payload.min_voting_score, true]);
+  return { success: true };
+}
+
+function overwriteAttendance(payloadArray) {
+  if (!Array.isArray(payloadArray) || payloadArray.length === 0) return { success: true, count: 0 };
+  const sheet = getSheet("Attendance");
+  const eventId = payloadArray[0].event_id;
+  
+  const data = sheet.getDataRange().getValues();
+  if (data.length > 1) {
+    const headers = data[0];
+    const eventIdx = headers.indexOf("event_id");
+    if (eventIdx !== -1) {
+      for (let i = data.length - 1; i >= 1; i--) {
+        if (data[i][eventIdx] === eventId) {
+          sheet.deleteRow(i + 1);
+        }
+      }
+    }
+  }
+  return insertRows("Attendance", payloadArray);
 }
 
 function updateMetricWithHistory(payload) {

@@ -63,6 +63,15 @@ export async function createVotingPeriod(payload: any) {
     }
 }
 
+export async function updateGlobalSettings(min_voting_score: number) {
+    try {
+        const res = await submitActionToSheet("update_global_settings", { min_voting_score })
+        return { success: true }
+    } catch (err: any) {
+        return { success: false, error: err.message }
+    }
+}
+
 export async function seedGoogleSheets(membersData: any[]) {
     try {
         if (membersData.length === 0) return { success: false, error: 'No data' }

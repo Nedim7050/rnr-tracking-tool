@@ -2,7 +2,7 @@ import { getDashboardData } from '@/lib/api'
 import { calculateScores } from '@/lib/scoring'
 import { VotingTable } from '@/components/voting/voting-table'
 
-import { PeriodSelector } from '@/components/voting/period-selector'
+
 
 export const dynamic = 'force-dynamic'
 
@@ -33,16 +33,10 @@ export default async function VotingPage({ searchParams }: { searchParams: Promi
                     </p>
                 </div>
                 {activePeriod && (
-                    <div className="bg-emerald-50 border border-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400 px-4 py-2 rounded-lg shadow-sm flex flex-col md:flex-row gap-4 items-center">
-                        <div>
-                            <span className="text-sm font-semibold uppercase tracking-wider block mb-0.5">Active Period</span>
-                            <span className="font-medium text-lg min-w-[200px] block">
-                                {activePeriod.label} <span className="text-emerald-600/60 ml-2 text-sm">min {activePeriod.min_voting_score} pts</span>
-                            </span>
-                        </div>
-                        {data.voting_periods && data.voting_periods.length > 0 && (
-                            <PeriodSelector periods={data.voting_periods} currentKey={activePeriod.period_key} />
-                        )}
+                    <div className="bg-emerald-50 border border-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400 px-4 py-3 rounded-lg shadow-sm flex items-center">
+                        <span className="font-medium text-lg min-w-[200px] block">
+                            Voting Requirement: <span className="font-bold text-emerald-700 dark:text-emerald-300">{activePeriod.min_voting_score} pts</span>
+                        </span>
                     </div>
                 )}
             </div>
