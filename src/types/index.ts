@@ -11,6 +11,7 @@ export type Member = {
   email?: string;
   phone?: string;
   fb_link?: string;
+  frozen?: boolean;
 };
 
 export type MetricCatalog = {

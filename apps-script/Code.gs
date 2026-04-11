@@ -73,7 +73,14 @@ function doPost(e) {
     if (action === "review_submission") return jsonResponse(updateRow("Submissions", "submission_id", payload.submission_id, payload));
     if (action === "create_event") return jsonResponse(insertRow("Events", payload));
     if (action === "mark_attendance") return jsonResponse(overwriteAttendance(payload));
-    if (action === "add_sanction") return jsonResponse(insertRow("Sanctions", payload));
+    if (action === "add_sanction") {
+      const resp = insertRow("Sanctions", payload);
+      const sType = (payload.sanction_type || "").toLowerCase();
+      if (sType.includes("blame") || sType.includes("probation")) {
+        updateRow("Members", "member_id", payload.member_id, { frozen: true });
+      }
+      return jsonResponse(resp);
+    }
     if (action === "add_vp_note") return jsonResponse(insertRow("VPNotes", payload));
     if (action === "log_audit") return jsonResponse(insertRow("AuditLog", payload));
     if (action === "add_oc_score") return jsonResponse(insertRow("OCScores", payload));
@@ -84,6 +91,8 @@ function doPost(e) {
     if (action === "seed_metrics") return jsonResponse(seedData("MetricCatalog", payload.headers, payload.rows));
     else if (action === "update_member") {
       return jsonResponse(updateRow("Members", "member_id", payload.member_id, payload));
+    } else if (action === "unfreeze_member") {
+      return jsonResponse(updateRow("Members", "member_id", payload.member_id, { frozen: false }));
     } else if (action === "create_voting_period") {
       return jsonResponse(insertRow("VotingPeriods", payload));
     } else if (action === "update_global_settings") {

@@ -47,11 +47,55 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
         const mOCScores = (data.oc_scores || []).filter(s => s.member_id === member.member_id);
         const mBDTargets = (data.bd_targets || []).filter(s => s.member_id === member.member_id);
 
+        let latestWarningEndOfDay = 0;
+        mSanctions.forEach(s => {
+            if ((s.sanction_type || '').toLowerCase().includes('warning')) {
+                const dDate = s.event_date ? new Date(s.event_date) : new Date(0);
+                if (!isNaN(dDate.getTime())) {
+                    dDate.setHours(23, 59, 59, 999);
+                    const d = dDate.getTime();
+                    if (d > latestWarningEndOfDay) latestWarningEndOfDay = d;
+                }
+            }
+        });
+
+        let latestFreezeStartOfDay = Infinity;
+        if (member.frozen) {
+            let maxFreeze = 0;
+            mSanctions.forEach(s => {
+                const type = (s.sanction_type || '').toLowerCase();
+                if (type.includes('blame') || type.includes('probation')) {
+                    const dDate = s.event_date ? new Date(s.event_date) : new Date(0);
+                    if (!isNaN(dDate.getTime())) {
+                        dDate.setHours(0, 0, 0, 0);
+                        const d = dDate.getTime();
+                        if (d > maxFreeze) maxFreeze = d;
+                    }
+                }
+            });
+            latestFreezeStartOfDay = maxFreeze > 0 ? maxFreeze : Date.now();
+        }
+
+        const isValidDate = (dateString: string | null | undefined): boolean => {
+            if (!dateString) return true;
+            const dDate = new Date(dateString);
+            const d = dDate.getTime();
+            if (isNaN(d)) return true;
+            
+            if (latestWarningEndOfDay > 0 && d <= latestWarningEndOfDay) return false;
+            if (member.frozen && d > latestFreezeStartOfDay) return false;
+            return true;
+        }
+
         let votingRawScore = 0;
         let generalJDScore = 0;
         let leadershipJDScore = 0;
         let departmentJDScore = 0;
-        let vpNoteScore = mVPNotes.reduce((sum, n) => sum + (Number(n.vp_note) || 0), 0);
+        
+        let vpNoteScore = 0;
+        mVPNotes.forEach(n => {
+            if (isValidDate(n.entered_at)) vpNoteScore += (Number(n.vp_note) || 0);
+        });
 
         const breakdown = {
             votingDetails: [] as ScoreBreakdownItem[],
@@ -69,6 +113,7 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
         let lcmTotal = 0;
 
         scopedEvents.forEach(event => {
+            if (!isValidDate(event.event_date)) return;
             const attended = mAttendance.some(a => a.event_id === event.event_id);
 
             if (event.event_type === 'LCM') {
@@ -109,6 +154,8 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
 
         // 2. Process Submissions
         mSubmissions.forEach(sub => {
+            if (!isValidDate(sub.event_date || sub.submitted_at)) return;
+
             const metric = metrics.find(m => m.metric_id === sub.metric_id);
             if (!metric) return;
 
@@ -154,6 +201,7 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
 
         // 2.1 Process Dedicated OC Scores
         mOCScores.forEach(oc => {
+            if (!isValidDate(oc.submitted_at)) return;
             const pts = Number(oc.manual_score) || 0;
             generalJDScore += pts;
             breakdown.generalDetails.push({ name: `OC Score`, points: pts, type: 'GENERAL' });
@@ -161,6 +209,7 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
 
         // 2.2 Process Dedicated BD Targets
         mBDTargets.forEach(bd => {
+            if (!isValidDate(bd.submitted_at)) return;
             const percent = Number(bd.percent_value) || 0;
             const pts = percent / 10;
             departmentJDScore += pts;
@@ -175,6 +224,7 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
         );
 
         mSanctions.forEach(sanction => {
+            if (!isValidDate(sanction.event_date)) return;
             const sanctionPts = Number(sanction.points) || 0;
             votingRawScore += sanctionPts; // Sanctions natively carry negative points
             breakdown.sanctionsDetails.push({ name: `Sanction: ${sanction.sanction_type}`, points: sanctionPts });

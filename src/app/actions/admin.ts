@@ -20,6 +20,15 @@ export async function addSanction(payload: any) {
     }
 }
 
+export async function unfreezeMember(member_id: string) {
+    try {
+        const res = await submitActionToSheet("unfreeze_member", { member_id })
+        return { success: true }
+    } catch (err: any) {
+        return { success: false, error: err.message }
+    }
+}
+
 export async function addOCPerformance(payload: any) {
     try {
         const res = await submitActionToSheet("add_oc_score", payload)

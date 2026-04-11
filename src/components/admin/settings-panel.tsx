@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { DashboardData } from '@/types'
-import { addVPNote, addSanction, seedGoogleSheets, seedGoogleSheetsMetrics, forceRecalculation, addOCPerformance, addBDTargetFulfillment, updateMetricPoints, updateGlobalSettings } from '@/app/actions/admin'
+import { addVPNote, addSanction, seedGoogleSheets, seedGoogleSheetsMetrics, forceRecalculation, addOCPerformance, addBDTargetFulfillment, updateMetricPoints, updateGlobalSettings, unfreezeMember } from '@/app/actions/admin'
 import { SEEDED_MEMBERS } from '@/lib/seed'
 import { SEEDED_METRICS } from '@/lib/metrics-seed'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
@@ -207,6 +207,7 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                         <TabsList className="bg-slate-100/80 dark:bg-slate-800/80 p-1 border border-slate-200 dark:border-slate-700">
                             <TabsTrigger value="vpnotes" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">VP Notes</TabsTrigger>
                             <TabsTrigger value="sanctions" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">Sanctions</TabsTrigger>
+                            <TabsTrigger value="frozen" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">Frozen Members</TabsTrigger>
                             <TabsTrigger value="oc_performance" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">OC Score</TabsTrigger>
                             <TabsTrigger value="bd_fulfillment" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">BD% Target</TabsTrigger>
                             <TabsTrigger value="metric_points" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-950">Metric Points</TabsTrigger>
@@ -276,6 +277,39 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
                             </div>
                             <Button type="submit" disabled={loading} className="mt-2 text-white bg-red-600 hover:bg-red-700 w-full">Apply Sanction</Button>
                         </form>
+                    </TabsContent>
+                    
+                    <TabsContent value="frozen" className="px-6 pb-6 pt-2 m-0 border-none outline-none">
+                        <div className="space-y-4 max-w-lg">
+                            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Currently Frozen Members</h3>
+                            <p className="text-xs text-slate-500 mb-4">Members who received a Blame or Probation are listed here. While frozen, their points are halted.</p>
+                            {data.members.filter(m => m.frozen).length === 0 ? (
+                                <div className="p-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-center text-sm font-medium text-slate-400">No members are currently frozen.</div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {data.members.filter(m => m.frozen).map(member => (
+                                        <div key={member.member_id} className="flex items-center justify-between p-3 rounded-lg border border-red-200 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20">
+                                            <span className="font-semibold text-red-900 dark:text-red-400 text-sm tracking-wide">{member.full_name}</span>
+                                            <Button 
+                                                size="sm" 
+                                                className="bg-white border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:bg-slate-950 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/50 shadow-sm transition-all"
+                                                variant="outline"
+                                                disabled={loading}
+                                                onClick={async () => {
+                                                    setLoading(true)
+                                                    const res = await unfreezeMember(member.member_id)
+                                                    setLoading(false)
+                                                    if (res.success) notify(`${member.full_name} has been unfrozen. Their scoring is back to normal.`, 'success')
+                                                    else notify(res.error || 'Error', 'error')
+                                                }}
+                                            >
+                                                Unfreeze
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </TabsContent>
 
                     <TabsContent value="oc_performance" className="px-6 pb-6 pt-2 m-0 border-none outline-none">

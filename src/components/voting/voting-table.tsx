@@ -102,6 +102,9 @@ export function VotingTable({ scores, activePeriod }: { scores: MemberScore[], a
                                         <span className="inline-block font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded dark:text-slate-300 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                                             {score.votingRawScore}
                                         </span>
+                                        {score.member.frozen && (
+                                            <Badge variant="destructive" className="ml-2 text-[10px] uppercase shadow-sm">FROZEN</Badge>
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-center">
                                         {score.isEligibleForVoting ? (

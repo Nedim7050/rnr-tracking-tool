@@ -102,6 +102,9 @@ export function MemberList({ scores }: { scores: MemberScore[] }) {
                                         <span className="inline-flex items-center justify-center min-w-12 h-7 font-bold text-blue-700 bg-blue-100/50 rounded-md dark:text-blue-400 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800">
                                             {score.trackingScore}
                                         </span>
+                                        {score.member.frozen && (
+                                            <Badge variant="destructive" className="ml-2 text-[9px] uppercase shadow-sm">FROZEN</Badge>
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         <Link href={`/members/${score.member.member_id}`}>
