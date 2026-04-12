@@ -22,7 +22,7 @@ export function VotingTable({ scores, activePeriod }: { scores: MemberScore[], a
     })
 
     const exportCSV = () => {
-        const headers = ['Member Name', 'Department', 'Position', 'Voting Raw Score', 'Eligible']
+        const headers = ['Member Name', 'Department', 'Position', 'Eligible', 'Attendance <=30% Absence', 'Affiliation Paid', 'Conference (6mo)', 'No Blame (3mo)', 'No Probation']
         const csvContent = [headers.join(',')]
 
         filtered.forEach(s => {
@@ -30,8 +30,12 @@ export function VotingTable({ scores, activePeriod }: { scores: MemberScore[], a
                 `"${s.member.full_name}"`,
                 `"${s.member.department_label}"`,
                 `"${s.member.position_label}"`,
-                s.votingRawScore,
-                s.isEligibleForVoting ? 'Yes' : 'No'
+                s.isEligibleForVoting ? 'Yes' : 'No',
+                s.eligibilityChecks?.attendancePassed ? 'Yes' : 'No',
+                s.eligibilityChecks?.affiliationPassed ? 'Yes' : 'No',
+                s.eligibilityChecks?.conferencePassed ? 'Yes' : 'No',
+                s.eligibilityChecks?.noRecentBlame ? 'Yes' : 'No',
+                s.eligibilityChecks?.noProbation && s.eligibilityChecks?.notFrozen ? 'Yes' : 'No'
             ].join(','))
         })
 
@@ -80,7 +84,7 @@ export function VotingTable({ scores, activePeriod }: { scores: MemberScore[], a
                             <TableRow>
                                 <TableHead>Member</TableHead>
                                 <TableHead>Department</TableHead>
-                                <TableHead className="text-right">Voting Raw Score</TableHead>
+                                <TableHead>Eligibility Checklist</TableHead>
                                 <TableHead className="text-center">Eligibility</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -98,13 +102,14 @@ export function VotingTable({ scores, activePeriod }: { scores: MemberScore[], a
                                             {score.member.department_label}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <span className="inline-block font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded dark:text-slate-300 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                                            {score.votingRawScore}
-                                        </span>
-                                        {score.member.frozen && (
-                                            <Badge variant="destructive" className="ml-2 text-[10px] uppercase shadow-sm">FROZEN</Badge>
-                                        )}
+                                    <TableCell>
+                                        <div className="flex flex-col gap-1 text-[11px] font-medium tracking-tight">
+                                            <div className={score.eligibilityChecks?.attendancePassed ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}> {score.eligibilityChecks?.attendancePassed ? "✓" : "✗"} Absentéisme ≤ 30%</div>
+                                            <div className={score.eligibilityChecks?.affiliationPassed ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}> {score.eligibilityChecks?.affiliationPassed ? "✓" : "✗"} Affiliation Payée</div>
+                                            <div className={score.eligibilityChecks?.conferencePassed ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}> {score.eligibilityChecks?.conferencePassed ? "✓" : "✗"} Conférence (6 mois)</div>
+                                            <div className={score.eligibilityChecks?.noRecentBlame ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}> {score.eligibilityChecks?.noRecentBlame ? "✓" : "✗"} Aucun Blâme (3 mois)</div>
+                                            <div className={(score.eligibilityChecks?.noProbation && score.eligibilityChecks?.notFrozen) ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}> {(score.eligibilityChecks?.noProbation && score.eligibilityChecks?.notFrozen) ? "✓" : "✗"} Aucune Probation</div>
+                                        </div>
                                     </TableCell>
                                     <TableCell className="text-center">
                                         {score.isEligibleForVoting ? (

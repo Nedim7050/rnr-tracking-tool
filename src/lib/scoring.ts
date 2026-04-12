@@ -11,6 +11,14 @@ export interface MemberScore {
     trackingScore: number;
     votingRawScore: number;
     isEligibleForVoting: boolean;
+    eligibilityChecks?: {
+        attendancePassed: boolean;
+        affiliationPassed: boolean;
+        conferencePassed: boolean;
+        noRecentBlame: boolean;
+        noProbation: boolean;
+        notFrozen: boolean;
+    };
     breakdown: {
         votingDetails: ScoreBreakdownItem[];
         generalDetails: ScoreBreakdownItem[];
@@ -258,7 +266,7 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
         const sixMonthsAgo = Date.now() - 180 * 24 * 60 * 60 * 1000;
         const passedConference = mAttendance.some(a => {
             const ev = scopedEvents.find(e => e.event_id === a.event_id);
-            if (!ev || (ev.event_type !== 'Conference' && ev.event_type !== 'LC Event')) return false;
+            if (!ev || ev.event_type !== 'Conference') return false;
             const d = ev.event_date ? new Date(ev.event_date).getTime() : 0;
             return d >= sixMonthsAgo;
         });
@@ -279,6 +287,14 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
             trackingScore,
             votingRawScore,
             isEligibleForVoting: isEligible5Step,
+            eligibilityChecks: {
+                attendancePassed: passedAttendance,
+                affiliationPassed: passedAffiliation,
+                conferencePassed: passedConference,
+                noRecentBlame: passedBlameCheck,
+                noProbation: passedProbationCheck,
+                notFrozen: !member.frozen
+            },
             breakdown
         });
     }
