@@ -29,16 +29,9 @@ export default async function VotingPage({ searchParams }: { searchParams: Promi
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Voting Eligibility</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        Determine which members are eligible to vote based on attendance and specific actions.
+                        Determine which members are eligible to vote based on the 5-point checklist logic.
                     </p>
                 </div>
-                {activePeriod && (
-                    <div className="bg-emerald-50 border border-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400 px-4 py-3 rounded-lg shadow-sm flex items-center">
-                        <span className="font-medium text-lg min-w-[200px] block">
-                            Voting Requirement: <span className="font-bold text-emerald-700 dark:text-emerald-300">{activePeriod.min_voting_score} pts</span>
-                        </span>
-                    </div>
-                )}
             </div>
 
             <VotingTable scores={scores} activePeriod={activePeriod || null} />

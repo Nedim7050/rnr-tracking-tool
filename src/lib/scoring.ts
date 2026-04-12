@@ -31,7 +31,7 @@ export interface MemberScore {
 export function calculateScores(data: DashboardData, activePeriodKey: string | null = null): MemberScore[] {
     const { members, metrics, submissions, events, attendance, vp_notes, sanctions, voting_periods } = data;
 
-    const minVotingScore = voting_periods.length > 0 ? Number(voting_periods[0].min_voting_score) || 0 : 0; 
+    const minVotingScore = 0;
     const scopedEvents = events; 
     const list: MemberScore[] = [];
 
@@ -108,17 +108,21 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
             totals: { voting: 0, general: 0, leadership: 0, department: 0 }
         };
 
-        // 1. Process Attendance (Counts towards Voting)
-        let lcmPresent = 0;
-        let lcmTotal = 0;
+        // 1. Process Attendance & Mandatory Requirement (Check 1)
+        let mandatoryTotal = 0;
+        let mandatoryPresent = 0;
 
         scopedEvents.forEach(event => {
             if (!isValidDate(event.event_date)) return;
             const attended = mAttendance.some(a => a.event_id === event.event_id);
 
+            if (['LCM', 'GA', 'Working Hours'].includes(event.event_type)) {
+                mandatoryTotal++;
+                if (attended) mandatoryPresent++;
+            }
+
             if (event.event_type === 'LCM') {
-                lcmTotal++;
-                if (attended) lcmPresent++;
+                // historically LCM instances didn't give points per event, only via the rate threshold
             } else if (attended) {
                 let pts = 0;
                 if (event.event_type === 'GA') pts = 5;
@@ -134,14 +138,16 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
             }
         });
 
-        // LCM rule setup
-        if (lcmTotal > 0) {
-            const lcmRate = lcmPresent / lcmTotal;
-            if (lcmRate >= 0.7) {
+        // Rules Setup
+        const passedAttendance = mandatoryTotal > 0 ? (mandatoryPresent / mandatoryTotal) >= 0.70 : true;
+
+        if (mandatoryTotal > 0) {
+            const mRate = mandatoryPresent / mandatoryTotal;
+            if (mRate >= 0.7) {
                 votingRawScore += 5;
-                breakdown.attendanceDetails.push({ name: 'LCM Threshold (>70%) Met', points: 5, type: 'LCM' });
+                breakdown.attendanceDetails.push({ name: 'Mandatory Threshold (>70%) Met', points: 5, type: 'LCM/GA/WH' });
             } else {
-                breakdown.attendanceDetails.push({ name: `LCM Not Met (${Math.round(lcmRate * 100)}%)`, points: 0, type: 'LCM' });
+                breakdown.attendanceDetails.push({ name: `Mandatory Not Met (${Math.round(mRate * 100)}%)`, points: 0, type: 'LCM/GA/WH' });
             }
         }
 
@@ -246,11 +252,33 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
 
         let trackingScore = (votingRawScore * 3) + generalJDScore + (leadershipJDScore * 2) + (departmentJDScore * 2) + vpNoteScore;
 
+        // New Eligibility 5-Step Logic
+        const passedAffiliation = mSubmissions.some(sub => sub.metric_name.toLowerCase().includes('affiliation'));
+        
+        const sixMonthsAgo = Date.now() - 180 * 24 * 60 * 60 * 1000;
+        const passedConference = mAttendance.some(a => {
+            const ev = scopedEvents.find(e => e.event_id === a.event_id);
+            if (!ev || (ev.event_type !== 'Conference' && ev.event_type !== 'LC Event')) return false;
+            const d = ev.event_date ? new Date(ev.event_date).getTime() : 0;
+            return d >= sixMonthsAgo;
+        });
+
+        const threeMonthsAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
+        const passedBlameCheck = !mSanctions.some(s => {
+            if (!(s.sanction_type || '').toLowerCase().includes('blame')) return false;
+            const d = s.event_date ? new Date(s.event_date).getTime() : 0;
+            return d >= threeMonthsAgo;
+        });
+
+        const passedProbationCheck = !mSanctions.some(s => (s.sanction_type || '').toLowerCase().includes('probation'));
+
+        const isEligible5Step = passedAttendance && passedAffiliation && passedConference && passedBlameCheck && passedProbationCheck && !member.frozen;
+
         list.push({
             member,
             trackingScore,
             votingRawScore,
-            isEligibleForVoting: !hasDisqualifyingSanction && votingRawScore >= minVotingScore,
+            isEligibleForVoting: isEligible5Step,
             breakdown
         });
     }

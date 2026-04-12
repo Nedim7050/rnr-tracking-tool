@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { DashboardData } from '@/types'
-import { addVPNote, addSanction, seedGoogleSheets, seedGoogleSheetsMetrics, forceRecalculation, addOCPerformance, addBDTargetFulfillment, updateMetricPoints, updateGlobalSettings, unfreezeMember } from '@/app/actions/admin'
+import { addVPNote, addSanction, seedGoogleSheets, seedGoogleSheetsMetrics, forceRecalculation, addOCPerformance, addBDTargetFulfillment, updateMetricPoints, unfreezeMember } from '@/app/actions/admin'
 import { SEEDED_MEMBERS } from '@/lib/seed'
 import { SEEDED_METRICS } from '@/lib/metrics-seed'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
@@ -34,7 +34,6 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
     const [metricToUpdate, setMetricToUpdate] = useState('')
     const [newMetricPoints, setNewMetricPoints] = useState('')
 
-    const [globalMinScore, setGlobalMinScore] = useState(data.voting_periods?.[0]?.min_voting_score?.toString() || '0')
 
     const notify = (msg: string, type: 'success' | 'error') => {
         setMessage({ text: msg, type })
@@ -147,15 +146,6 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
         const res = await updateMetricPoints(metricToUpdate, metric.base_points, Number(newMetricPoints))
         setLoading(false)
         if (res.success) notify('Metric updated and historical scores correctly frozen.', 'success')
-        else notify(res.error || 'Error', 'error')
-    }
-
-    const handleGlobalSettings = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        const res = await updateGlobalSettings(Number(globalMinScore))
-        setLoading(false)
-        if (res.success) notify('Global Min Voting Score updated.', 'success')
         else notify(res.error || 'Error', 'error')
     }
 
@@ -380,19 +370,6 @@ export function SettingsPanel({ data }: { data: DashboardData }) {
 
                     <TabsContent value="advanced" className="px-6 pb-6 pt-2 m-0 border-none outline-none">
                         <div className="space-y-6 max-w-xl">
-                            <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/50 dark:bg-emerald-950/20">
-                                <h4 className="font-bold flex items-center gap-2 text-emerald-900 dark:text-emerald-400 mb-1">Global Settings</h4>
-                                <form onSubmit={handleGlobalSettings} className="space-y-4">
-                                    <div className="space-y-2 max-w-xs">
-                                        <label className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Min. Points for Voting Eligibility</label>
-                                        <div className="flex gap-2">
-                                            <Input type="number" min="0" value={globalMinScore} onChange={e => setGlobalMinScore(e.target.value)} required className="bg-white dark:bg-slate-950 border-emerald-200 dark:border-emerald-800"/>
-                                            <Button type="submit" disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 text-white">Save</Button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-
                             <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/20">
                                 <h4 className="font-bold flex items-center gap-2 text-blue-900 dark:text-blue-400 mb-1"><RefreshCw className="h-5 w-5" /> Force Cache Refresh</h4>
                                 <p className="text-sm text-blue-700/80 dark:text-blue-300">If scoring or submissions are delayed, manually purge the Next.js cache and recalculate.</p>
