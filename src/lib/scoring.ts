@@ -181,7 +181,7 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
             // manual_score must be explicitly set and non-zero to override formula.
             // Google Sheets returns "" as 0 via type coercion, so we must guard against that.
             const hasManualScore = sub.manual_score !== null && sub.manual_score !== undefined 
-                && sub.manual_score !== '' && sub.manual_score !== 0 && Number(sub.manual_score) !== 0;
+                && (sub.manual_score as any) !== '' && sub.manual_score !== 0 && Number(sub.manual_score) !== 0;
             
             if (hasManualScore) {
                 pts = Number(sub.manual_score);
