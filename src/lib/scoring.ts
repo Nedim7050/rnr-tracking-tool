@@ -170,11 +170,20 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
         mSubmissions.forEach(sub => {
             if (!isValidDate(sub.event_date || sub.submitted_at)) return;
 
-            const metric = metrics.find(m => m.metric_id === sub.metric_id);
+            // Primary lookup by ID, fallback to name match if IDs got desynchronized (e.g. after a reseed)
+            let metric = metrics.find(m => m.metric_id === sub.metric_id);
+            if (!metric && sub.metric_name) {
+                metric = metrics.find(m => m.metric_name.toLowerCase() === sub.metric_name.toLowerCase());
+            }
             if (!metric) return;
 
             let pts = 0;
-            if (sub.manual_score !== null && sub.manual_score !== undefined) {
+            // manual_score must be explicitly set and non-zero to override formula.
+            // Google Sheets returns "" as 0 via type coercion, so we must guard against that.
+            const hasManualScore = sub.manual_score !== null && sub.manual_score !== undefined 
+                && sub.manual_score !== '' && sub.manual_score !== 0 && Number(sub.manual_score) !== 0;
+            
+            if (hasManualScore) {
                 pts = Number(sub.manual_score);
             } else if (metric.formula_type === 'FIXED') {
                 pts = metric.base_points;
@@ -183,7 +192,7 @@ export function calculateScores(data: DashboardData, activePeriodKey: string | n
             } else if (metric.formula_type === 'PERCENT_DIV_10') {
                 pts = (sub.percent_value || 0) / 10;
             } else if (metric.formula_type === 'MANUAL_SCORE') {
-                pts = sub.manual_score || 0;
+                pts = Number(sub.manual_score) || 0;
             }
 
             const excluded = isVotingExcluded(sub.metric_name);
